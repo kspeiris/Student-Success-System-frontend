@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './components/screens/Dashboard'
 import Semesters from './components/screens/Semesters'
@@ -14,10 +14,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/semesters" element={<Semesters />} />
           <Route path="/subjects" element={<Subjects />} />
           <Route path="/assignments" element={<Assignments />} />
@@ -25,6 +26,7 @@ function App() {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

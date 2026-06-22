@@ -1,129 +1,129 @@
-import React from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Input } from './ui/input';
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { cn } from '@/lib/utils'
+import { Input } from './ui/input'
 
 const navItems = [
-  { path: '/', icon: 'dashboard', label: 'Dashboard' },
+  { path: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
   { path: '/semesters', icon: 'calendar_month', label: 'Semesters' },
   { path: '/subjects', icon: 'menu_book', label: 'Subjects' },
   { path: '/assignments', icon: 'assignment', label: 'Assignments' },
   { path: '/exams', icon: 'quiz', label: 'Exams' },
   { path: '/analytics', icon: 'analytics', label: 'GPA & Analytics' },
-];
+]
 
 const accountItems = [
   { path: '/notifications', icon: 'notifications', label: 'Notifications' },
   { path: '/profile', icon: 'person', label: 'Profile' },
-];
+]
 
 export default function Layout() {
-  const location = useLocation();
+  const location = useLocation()
+  const onDashboard = location.pathname === '/dashboard'
 
   return (
     <div className="min-h-screen bg-surface text-on-surface">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-screen w-64 bg-surface-container-lowest border-r border-outline-variant shadow-sm z-50 flex flex-col py-lg">
+      <aside className="fixed left-0 top-0 z-50 hidden h-screen w-64 flex-col border-r border-outline-variant bg-surface-container-lowest py-lg shadow-sm lg:flex">
         <div className="px-lg mb-xl">
           <div className="flex items-center justify-center py-2">
-             <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKg_dwDTQen7folavczNqKFcVIow23KG-gN5z3gefHEmMw2G2t7IelmH5dSGhAt0nzl0ciFkc61oeDeHO2jiay1nbSTNUqEPjR6W_9Nog_l1qbPmCOFvsVYnGgHSBfH9mqQxfFvLXepnlPuLzkzEQt601MoUjY5z8ytd3MM9InW32k1oZh9kAD1v7e-2FoLHp7Wgl1Yw2B3pJ4QOuaQYIGmb9S-76mprm-nZ81WCLUrySgorH7HLO0guu3Fx94r8iae-HV3XfX2dTp" alt="Gradify Logo" className="h-10 w-auto object-contain mb-xs" />
+            <img src="/src/assets/hero.png" alt="Gradify Logo" className="mb-xs h-12 w-auto object-contain" />
           </div>
-          <p className="text-label-md font-label-md text-on-surface-variant text-center mt-2">Track. Improve. Succeed.</p>
+          <p className="mt-2 text-center text-label-md font-label-md text-on-surface-variant">Track. Improve. Succeed.</p>
         </div>
 
-        <nav className="flex-1 px-md space-y-1 overflow-y-auto">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-md">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+            const isActive = location.pathname === item.path
+
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-md px-md py-sm rounded-lg transition-all duration-200 ease-in-out font-body-md",
+                  'flex items-center gap-md rounded-lg px-md py-sm font-body-md transition-all duration-200 ease-in-out',
                   isActive
-                    ? "text-primary font-bold border-r-4 border-primary bg-surface-container-low"
-                    : "text-on-surface-variant hover:bg-surface-container-highest"
+                    ? 'border-r-4 border-primary bg-surface-container-low font-bold text-primary'
+                    : 'text-on-surface-variant hover:bg-surface-container-highest',
                 )}
               >
                 <span className="material-symbols-outlined">{item.icon}</span>
                 <span>{item.label}</span>
               </NavLink>
-            );
+            )
           })}
 
-          <div className="pt-lg pb-sm border-t border-outline-variant mt-lg mx-md">
-            <span className="text-label-sm font-label-sm text-outline uppercase tracking-wider">Account</span>
+          <div className="mx-md mt-lg border-t border-outline-variant pb-sm pt-lg">
+            <span className="text-label-sm font-label-sm uppercase tracking-wider text-outline">Account</span>
           </div>
 
           {accountItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path
+
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-md px-md py-sm rounded-lg transition-all duration-200 ease-in-out font-body-md",
+                  'flex items-center gap-md rounded-lg px-md py-sm font-body-md transition-all duration-200 ease-in-out',
                   isActive
-                    ? "text-primary font-bold border-r-4 border-primary bg-surface-container-low"
-                    : "text-on-surface-variant hover:bg-surface-container-highest"
+                    ? 'border-r-4 border-primary bg-surface-container-low font-bold text-primary'
+                    : 'text-on-surface-variant hover:bg-surface-container-highest',
                 )}
               >
                 <span className="material-symbols-outlined">{item.icon}</span>
                 <span>{item.label}</span>
               </NavLink>
-            );
+            )
           })}
         </nav>
 
-        <div className="px-md mt-auto">
-          <button className="w-full py-md bg-primary text-on-primary rounded-lg font-label-md flex items-center justify-center gap-sm hover:opacity-90 transition-opacity">
+        <div className="mt-auto px-md">
+          <button className="flex w-full items-center justify-center gap-sm rounded-lg bg-primary py-md font-label-md text-on-primary transition-opacity hover:opacity-90">
             <span className="material-symbols-outlined text-[18px]">add</span>
             New Entry
           </button>
         </div>
       </aside>
 
-      {/* Header */}
-      <header className="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-surface-container-lowest border-b border-outline-variant shadow-sm z-40 flex items-center justify-between px-lg">
-        <div className="flex items-center w-1/3">
+      <header className="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between border-b border-outline-variant bg-surface-container-lowest px-lg shadow-sm lg:left-64 lg:w-[calc(100%-16rem)]">
+        <div className="flex w-1/3 items-center">
           <div className="relative w-full">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline z-10 pointer-events-none">search</span>
-            <Input 
-                className="w-full bg-surface-container-low border-none rounded-lg pl-10 pr-4 h-10 text-body-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0" 
-                placeholder="Search subjects, assignments, exams..." 
-                type="text" 
+            <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-outline">search</span>
+            <Input
+              className="h-10 w-full rounded-lg border-none bg-surface-container-low pl-10 pr-4 text-body-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
+              placeholder="Search subjects, assignments, exams..."
+              type="text"
             />
           </div>
         </div>
-        
+
         <div className="flex items-center gap-lg">
-          <button className="text-on-surface-variant hover:text-primary transition-colors relative">
+          <button className="relative text-on-surface-variant transition-colors hover:text-primary">
             <span className="material-symbols-outlined">notifications</span>
-            <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+            <span className="absolute right-0 top-0 h-2 w-2 rounded-full border-2 border-white bg-error"></span>
           </button>
-          <button className="text-on-surface-variant hover:text-primary transition-colors">
+          <button className="text-on-surface-variant transition-colors hover:text-primary">
             <span className="material-symbols-outlined">help</span>
           </button>
-          <div className="flex items-center gap-md cursor-pointer hover:opacity-80 transition-opacity pl-2 border-l border-outline-variant">
-            <div className="text-right hidden sm:block">
-              <p className="font-label-md text-on-surface font-bold">Kavindu W.</p>
+          <div className="flex cursor-pointer items-center gap-md border-l border-outline-variant pl-2 transition-opacity hover:opacity-80">
+            <div className="hidden text-right sm:block">
+              <p className="font-label-md font-bold text-on-surface">Kavindu W.</p>
               <p className="text-[10px] text-on-surface-variant">Undergraduate</p>
             </div>
-            <img 
-              className="w-10 h-10 rounded-full border border-outline-variant object-cover" 
-              alt="Profile" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7PGh3QgnHWbvv9I8Vt4YG8a7M5OESpeGBYr7T8hDQlESrY0CjCqEBNf0xPoXap0VKyLZ7yhxozW-S44mvoQgCreyJWSa-Vz72GLxbskCdITgaDtNuTMHRhT48OVxkvcobWB0bZLDRdX9WLVIAgNMCxc-R8YWod2wUTids5TZ_8pQkuJhtncvf7yvhXMzqkXSGPnTu2GzLmO1J_GZ8elpQwKV0uVRi_TS4A4W0CUPJdAwoGn8ilU5C7UpcFQBrBfldd2VsUZmnpHuM" 
+            <img
+              className="h-10 w-10 rounded-full border border-outline-variant object-cover"
+              alt="Profile"
+              src="/src/assets/hero.png"
             />
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="ml-64 pt-16 min-h-screen">
-        <div className="p-lg lg:p-xl max-w-[1600px] mx-auto">
-           <Outlet />
+      <main className="min-h-screen pt-16 lg:ml-64">
+        <div className="mx-auto max-w-[1600px] p-lg lg:p-xl">
+          <Outlet />
         </div>
+        {onDashboard ? null : null}
       </main>
     </div>
-  );
+  )
 }
