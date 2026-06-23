@@ -12,30 +12,29 @@ import { NotificationsPanel } from './components/NotificationsPanel';
 import { NotificationCenterView } from './components/NotificationCenterView';
 import { LoginView } from './components/LoginView';
 
-import { 
-  UserProfile, 
-  Semester, 
-  Subject, 
-  Assignment, 
-  Exam, 
-  NotificationItem, 
-  AcademicGoal, 
-  ActivityLog 
+import {
+  UserProfile,
+  Semester,
+  Subject,
+  Assignment,
+  Exam,
+  NotificationItem,
+  AcademicGoal,
+  ActivityLog
 } from './types';
 
-import { 
-  INITIAL_PROFILE, 
-  INITIAL_SEMESTERS, 
-  INITIAL_SUBJECTS, 
-  INITIAL_ASSIGNMENTS, 
-  INITIAL_EXAMS, 
-  INITIAL_NOTIFICATIONS, 
-  INITIAL_GOALS, 
-  INITIAL_LOGS 
+import {
+  INITIAL_PROFILE,
+  INITIAL_SEMESTERS,
+  INITIAL_SUBJECTS,
+  INITIAL_ASSIGNMENTS,
+  INITIAL_EXAMS,
+  INITIAL_NOTIFICATIONS,
+  INITIAL_GOALS,
+  INITIAL_LOGS
 } from './data';
 
 export default function App() {
-  // --- Persistent Local Database State ---
   const [profile, setProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('gradify_profile');
     return saved ? JSON.parse(saved) : INITIAL_PROFILE;
@@ -76,7 +75,6 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_LOGS;
   });
 
-  // Active View Tab and Semester Context
   const [activeTab, setActiveTab] = useState('dashboard');
   const [currentSemesterId, setCurrentSemesterId] = useState('sem-5');
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -84,7 +82,6 @@ export default function App() {
     return localStorage.getItem('ssp_is_logged_in') === 'true';
   });
 
-  // --- Sync database to localStorage on modifications ---
   useEffect(() => {
     localStorage.setItem('gradify_profile', JSON.stringify(profile));
   }, [profile]);
@@ -117,9 +114,7 @@ export default function App() {
     localStorage.setItem('gradify_activity_logs', JSON.stringify(activityLogs));
   }, [activityLogs]);
 
-  // --- Dynamic GPAs & Statistics Recalculator engine ---
   useEffect(() => {
-    // 1. Calculate SGPA of Active/Simulated Term
     const termSubjects = subjects.filter(sub => sub.semesterId === currentSemesterId);
     if (termSubjects.length === 0) return;
 
@@ -147,20 +142,18 @@ export default function App() {
     const calculatedSgpa = totalCredits > 0 ? (earnedHonorPoints / totalCredits) : 0.0;
     const roundedSgpa = Math.round(calculatedSgpa * 100) / 100;
 
-    // 2. Update current Semester SGPA in semesters list
-    let updatedSemesters = semesters.map(sem => {
+    const updatedSemesters = semesters.map(sem => {
       if (sem.id === currentSemesterId) {
         return {
           ...sem,
           sgpa: roundedSgpa,
-          totalCredits: totalCredits,
+          totalCredits,
           creditsEarned: termSubjects.filter(sub => sub.score >= 50).reduce((sm, sb) => sm + sb.credits, 0)
         };
       }
       return sem;
     });
 
-    // 3. Compute overall Cumulative GP (CGPA) from completed + active semesters list
     const activeCompletedSemesters = updatedSemesters.filter(s => s.status === 'completed' || s.id === currentSemesterId);
     let sumSgpa = 0;
     let countedTerms = 0;
@@ -173,24 +166,20 @@ export default function App() {
 
     const calculatedCgpa = countedTerms > 0 ? Math.round((sumSgpa / countedTerms) * 100) / 100 : 3.78;
 
-    // Update state synchronously
     setSemesters(updatedSemesters);
     setProfile(prev => ({
       ...prev,
       gpa: roundedSgpa,
       cgpa: calculatedCgpa
     }));
-
   }, [subjects, currentSemesterId]);
-
-  // --- Dynamic Actions Helpers ---
 
   const addLog = (title: string, description: string, type: 'gpa' | 'submission' | 'preference' | 'exam') => {
     const newLog: ActivityLog = {
       id: `log-${Date.now()}`,
       title,
       description,
-      timestamp: "Just now",
+      timestamp: 'Just now',
       type
     };
     setActivityLogs(prev => [newLog, ...prev.slice(0, 19)]);
@@ -201,7 +190,7 @@ export default function App() {
       id: `not-${Date.now()}`,
       title,
       message,
-      timeLabel: "Just now",
+      timeLabel: 'Just now',
       priority,
       category,
       isRead: false
@@ -209,12 +198,11 @@ export default function App() {
     setNotifications(prev => [newNotification, ...prev]);
   };
 
-  // 1. Semester View Actions
   const handleAddSemester = (
-    name: string, 
-    duration: string, 
-    totalCredits: number, 
-    expectedSgpa: number, 
+    name: string,
+    duration: string,
+    totalCredits: number,
+    expectedSgpa: number,
     status: 'completed' | 'active' | 'upcoming',
     academicYear?: string,
     startDate?: string,
@@ -236,27 +224,26 @@ export default function App() {
       isArchived: false
     };
     setSemesters(prev => [...prev, newSem]);
-    addLog("Semester Added", `Registered ${name} inside the portal.`, "preference");
-    triggerNotification("Semester Scheduled", `Successfully added ${name} trajectory goals.`, "system", "low");
+    addLog('Semester Added', `Registered ${name} inside the portal.`, 'preference');
+    triggerNotification('Semester Scheduled', `Successfully added ${name} trajectory goals.`, 'system', 'low');
   };
 
   const handleUpdateSemester = (updatedSem: Semester) => {
     setSemesters(prev => prev.map(s => s.id === updatedSem.id ? updatedSem : s));
-    addLog("Semester Updated", `Updated ${updatedSem.name} details successfully.`, "preference");
+    addLog('Semester Updated', `Updated ${updatedSem.name} details successfully.`, 'preference');
   };
 
   const handleDeleteSemester = (id: string) => {
     setSemesters(prev => prev.filter(s => s.id !== id));
-    addLog("Semester Deleted", `Removed semester context allocation.`, "preference");
+    addLog('Semester Deleted', 'Removed semester context allocation.', 'preference');
   };
 
-  // 2. Course View Actions
   const handleAddSubject = (
-    code: string, 
-    name: string, 
-    credits: number, 
-    lecturer: string, 
-    score: number, 
+    code: string,
+    name: string,
+    credits: number,
+    lecturer: string,
+    score: number,
     status: 'active' | 'completed' | 'upcoming',
     targetSemesterId?: string,
     description?: string
@@ -283,16 +270,16 @@ export default function App() {
       assignmentsProgress: status === 'completed' ? 100 : 85,
       quizzesProgress: status === 'completed' ? 100 : 80,
       midExamProgress: status === 'completed' ? 100 : 90,
-      description: description || ""
+      description: description || ''
     };
     setSubjects(prev => [...prev, newSub]);
-    addLog("Course Added", `Added course ${code} under designated semester.`, "preference");
-    triggerNotification("Course Assigned", `Registered ${code}: ${name} to your tracking portfolio.`, "system", "low");
+    addLog('Course Added', `Added course ${code} under designated semester.`, 'preference');
+    triggerNotification('Course Assigned', `Registered ${code}: ${name} to your tracking portfolio.`, 'system', 'low');
   };
 
   const handleDeleteSubject = (id: string) => {
     setSubjects(prev => prev.filter(s => s.id !== id));
-    addLog("Course Removed", `Archived course metrics successfully.`, "preference");
+    addLog('Course Removed', 'Archived course metrics successfully.', 'preference');
   };
 
   const handleUpdateSubjectGrade = (id: string, score: number, grade: string, assignmentsProgress: number, quizzesProgress: number, midExamProgress: number) => {
@@ -309,17 +296,16 @@ export default function App() {
       }
       return sub;
     }));
-    addLog("Grade Simulated", `Slid evaluation metric inputs to forecast overall scores.`, "gpa");
+    addLog('Grade Simulated', 'Slid evaluation metric inputs to forecast overall scores.', 'gpa');
   };
 
-  // 3. Assignment View Actions
   const handleAddAssignment = (title: string, subjectId: string, dueDate: string, priority: 'low' | 'medium' | 'high' | 'critical', isGroup: boolean) => {
     const subject = subjects.find(s => s.id === subjectId);
     const newAsm: Assignment = {
       id: `asm-${Date.now()}`,
       title,
       subjectId,
-      subjectName: subject ? subject.name : "Unassigned",
+      subjectName: subject ? subject.name : 'Unassigned',
       dueDate,
       progress: 0,
       status: 'pending',
@@ -327,8 +313,8 @@ export default function App() {
       isGroup
     };
     setAssignments(prev => [newAsm, ...prev]);
-    addLog("Assignment Created", `Assembled homework assignment titled: ${title}`, "submission");
-    triggerNotification("New Task Added", `Deadline set for ${dueDate}. Keep active!`, "assignments", "high");
+    addLog('Assignment Created', `Assembled homework assignment titled: ${title}`, 'submission');
+    triggerNotification('New Task Added', `Deadline set for ${dueDate}. Keep active!`, 'assignments', 'high');
   };
 
   const handleUpdateAssignmentStatus = (id: string, status: 'pending' | 'in_progress' | 'completed' | 'overdue', progress: number) => {
@@ -338,25 +324,24 @@ export default function App() {
       }
       return asm;
     }));
-    addLog("Task State Modified", `Transferred homework assignment checkpoints.`, "submission");
+    addLog('Task State Modified', 'Transferred homework assignment checkpoints.', 'submission');
     if (status === 'completed') {
-      triggerNotification("Task Completed 🎉", `Pushed assignment goals to finished. Good work!`, "assignments", "low");
+      triggerNotification('Task Completed 🎉', 'Pushed assignment goals to finished. Good work!', 'assignments', 'low');
     }
   };
 
   const handleDeleteAssignment = (id: string) => {
     setAssignments(prev => prev.filter(a => a.id !== id));
-    addLog("Task Archived", `Dropped planned task.`, "submission");
+    addLog('Task Archived', 'Dropped planned task.', 'submission');
   };
 
-  // 4. Exam Calendar Actions
   const handleAddExam = (subjectId: string, type: string, date: string, timeRange: string, venue: string) => {
     const subject = subjects.find(s => s.id === subjectId);
     const newExam: Exam = {
       id: `ex-${Date.now()}`,
       subjectId,
-      subjectName: subject ? subject.name : "Elective Course",
-      subjectCode: subject ? subject.code : "EL-000",
+      subjectName: subject ? subject.name : 'Elective Course',
+      subjectCode: subject ? subject.code : 'EL-000',
       type,
       date,
       timeRange,
@@ -364,8 +349,8 @@ export default function App() {
       status: 'upcoming'
     };
     setExams(prev => [...prev, newExam]);
-    addLog("Exam Allocated", `Scheduled ${type} calendar slot.`, "exam");
-    triggerNotification("Exam Slated", `Set schedule countdown for ${subject ? subject.code : 'test'}.`, "exams", "high");
+    addLog('Exam Allocated', `Scheduled ${type} calendar slot.`, 'exam');
+    triggerNotification('Exam Slated', `Set schedule countdown for ${subject ? subject.code : 'test'}.`, 'exams', 'high');
   };
 
   const handleUpdateExamGrade = (id: string, score: number, grade: string) => {
@@ -380,16 +365,15 @@ export default function App() {
       }
       return ex;
     }));
-    addLog("Exam Score Filed", `Assigned grade score of ${score}% to closed test slot.`, "gpa");
-    triggerNotification("Score Evaluated", `Closed exam slot tracking. Overall term stats updated!`, "exams", "low");
+    addLog('Exam Score Filed', `Assigned grade score of ${score}% to closed test slot.`, 'gpa');
+    triggerNotification('Score Evaluated', 'Closed exam slot tracking. Overall term stats updated!', 'exams', 'low');
   };
 
   const handleDeleteExam = (id: string) => {
     setExams(prev => prev.filter(e => e.id !== id));
-    addLog("Exam Drop", `Cleared scheduled exam slot.`, "exam");
+    addLog('Exam Drop', 'Cleared scheduled exam slot.', 'exam');
   };
 
-  // 5. Goal Planner Actions
   const handleAddGoal = (title: string, current: number, target: number, subtitle: string) => {
     const newGoal: AcademicGoal = {
       id: `goal-${Date.now()}`,
@@ -400,12 +384,12 @@ export default function App() {
       category: 'general'
     };
     setGoals(prev => [...prev, newGoal]);
-    addLog("Goal Registered", `Slated target: ${title}`, "preference");
+    addLog('Goal Registered', `Slated target: ${title}`, 'preference');
   };
 
   const handleDeleteGoal = (id: string) => {
     setGoals(prev => prev.filter(g => g.id !== id));
-    addLog("Goal Cleared", `Archived configured milestone.`, "preference");
+    addLog('Goal Cleared', 'Archived configured milestone.', 'preference');
   };
 
   const handleUpdateGoalProgress = (id: string, current: number) => {
@@ -417,17 +401,15 @@ export default function App() {
     }));
   };
 
-  // 6. User Profile Actions
   const handleUpdateProfile = (updated: Partial<UserProfile>) => {
     setProfile(prev => ({ ...prev, ...updated }));
-    addLog("Profile Saved", "Saved updated enrollment characteristics.", "preference");
+    addLog('Profile Saved', 'Saved updated enrollment characteristics.', 'preference');
   };
 
   const handleClearLogs = () => {
     setActivityLogs([]);
   };
 
-  // 7. Notification general helpers
   const handleMarkAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   };
@@ -442,12 +424,11 @@ export default function App() {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  // --- View router switch ---
   const renderActiveView = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <DashboardView 
+          <DashboardView
             semesters={semesters}
             subjects={subjects}
             assignments={assignments}
@@ -461,7 +442,7 @@ export default function App() {
         );
       case 'semesters':
         return (
-          <SemestersView 
+          <SemestersView
             semesters={semesters}
             subjects={subjects}
             currentSemesterId={currentSemesterId}
@@ -474,7 +455,7 @@ export default function App() {
         );
       case 'subjects':
         return (
-          <SubjectsView 
+          <SubjectsView
             subjects={subjects}
             semesters={semesters}
             currentSemesterId={currentSemesterId}
@@ -487,7 +468,7 @@ export default function App() {
         );
       case 'assignments':
         return (
-          <AssignmentsView 
+          <AssignmentsView
             assignments={assignments}
             subjects={subjects}
             semesters={semesters}
@@ -500,7 +481,7 @@ export default function App() {
         );
       case 'exams':
         return (
-          <ExamsView 
+          <ExamsView
             exams={exams}
             subjects={subjects}
             onAddExam={handleAddExam}
@@ -511,7 +492,7 @@ export default function App() {
         );
       case 'analytics':
         return (
-          <AnalyticsView 
+          <AnalyticsView
             semesters={semesters}
             goals={goals}
             onAddGoal={handleAddGoal}
@@ -522,7 +503,7 @@ export default function App() {
         );
       case 'profile':
         return (
-          <ProfileView 
+          <ProfileView
             profile={profile}
             activityLogs={activityLogs}
             onUpdateProfile={handleUpdateProfile}
@@ -532,7 +513,7 @@ export default function App() {
         );
       case 'notifications':
         return (
-          <NotificationCenterView 
+          <NotificationCenterView
             notifications={notifications}
             unreadCount={unreadCount}
             onMarkAsRead={handleMarkAsRead}
@@ -552,12 +533,10 @@ export default function App() {
 
   return (
     <div id="gradify-viewport" className="flex h-screen bg-[#fafbfc] overflow-hidden antialiased">
-      
-      {/* 1. Left Vertical Nav Bar */}
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        profile={profile} 
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        profile={profile}
         unreadCount={unreadCount}
         onLogout={() => {
           localStorage.removeItem('ssp_is_logged_in');
@@ -565,11 +544,8 @@ export default function App() {
         }}
       />
 
-      {/* 2. Main content flow (Header + active viewport view) */}
       <div id="gradify-window-canvas" className="flex-1 flex flex-col h-full overflow-hidden">
-        
-        {/* Dynamic header row */}
-        <Header 
+        <Header
           currentSemesterId={currentSemesterId}
           setCurrentSemesterId={setCurrentSemesterId}
           semesters={semesters}
@@ -580,17 +556,14 @@ export default function App() {
           setActiveTab={setActiveTab}
         />
 
-        {/* View Layout context */}
         <main id="gradify-viewport-flow" className="flex-1 overflow-y-auto px-8 py-6">
           <div className="max-w-6xl mx-auto pb-12 animate-fade-in">
             {renderActiveView()}
           </div>
         </main>
-
       </div>
 
-      {/* 3. Notifications sliding tray panel */}
-      <NotificationsPanel 
+      <NotificationsPanel
         isOpen={notificationOpen}
         onClose={() => setNotificationOpen(false)}
         notifications={notifications}
@@ -599,7 +572,6 @@ export default function App() {
         onClearAll={handleClearNotifications}
         setActiveTab={setActiveTab}
       />
-
     </div>
   );
 }
